@@ -7,11 +7,12 @@ from playwright.sync_api import sync_playwright
 ap=argparse.ArgumentParser(); ap.add_argument('url'); ap.add_argument('out')
 ap.add_argument('--hero-frames',type=int,default=170); ap.add_argument('--tail-frames',type=int,default=192)
 ap.add_argument('--hold',type=int,default=12); ap.add_argument('--w',type=int,default=1440); ap.add_argument('--h',type=int,default=900)
-ap.add_argument('--chromium',default=os.environ.get('CHROMIUM','/opt/pw-browsers/chromium'))
+ap.add_argument('--chromium',default=os.environ.get('CHROMIUM'),help='path to a Chromium/Chrome binary (default: Playwright bundled)')
+ap.add_argument('--channel',default=None,help="e.g. 'chrome' to use installed Google Chrome (has H.264)")
 a=ap.parse_args(); os.makedirs(a.out,exist_ok=True)
 WAIT="""new Promise(res=>{const v=document.querySelector('video');let st=0;const raf=()=>requestAnimationFrame(()=>{ if(v&&(v.seeking||v.readyState<2)) st=0; else st++; st>=4?res():raf();});raf();})"""
 with sync_playwright() as p:
-    b=p.chromium.launch(executable_path=a.chromium,args=['--autoplay-policy=no-user-gesture-required'])
+    b=p.chromium.launch(executable_path=a.chromium,channel=a.channel,args=['--autoplay-policy=no-user-gesture-required'])
     pg=b.new_page(viewport={'width':a.w,'height':a.h})
     pg.goto(a.url,wait_until='networkidle'); pg.wait_for_timeout(2500)
     mx=pg.evaluate("document.documentElement.scrollHeight-innerHeight")
